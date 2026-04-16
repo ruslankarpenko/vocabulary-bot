@@ -1,8 +1,10 @@
 import asyncio
 import logging
 import os
+import sys
 from aiogram import Bot, Dispatcher
 from aiogram.enums import ParseMode
+from aiogram.client.default import DefaultBotProperties
 from aiogram.fsm.storage.memory import MemoryStorage
 from flask import Flask
 from threading import Thread
@@ -27,6 +29,14 @@ def run_flask():
 
 # Імпорт конфігурації
 from config import config
+
+# Перевірка токена
+if not config.BOT_TOKEN:
+    logger.error("❌ BOT_TOKEN не встановлено в змінних оточення!")
+    sys.exit(1)
+
+logger.info(f"✅ Токен завантажено: {config.BOT_TOKEN[:10]}...")
+
 from database.supabase_client import db
 
 # Словник для зберігання станів користувачів
@@ -36,11 +46,21 @@ async def main():
     """Головна функція запуску бота"""
     logger.info("🚀 Запуск бота...")
     
-    # Ініціалізація бота (без DefaultBotProperties)
-    bot = Bot(
-        token=config.BOT_TOKEN,
-        parse_mode=ParseMode.HTML
-    )
+    # Ініціалізація бота з DefaultBotProperties
+    try:
+        bot = Bot(
+            token=config.BOT_TOKEN,
+            default=DefaultBotProperties(parse_mode=ParseMode.HTML)
+        )
+        
+        # Перевірка токена через отримання інформації про бота
+        bot_info = await bot.get_me()
+        logger.info(f"🤖 Бот @{bot_info.username} успішно підключено!")
+        
+    except Exception as e:
+        logger.error(f"❌ Помилка ініціалізації бота: {e}")
+        sys.exit(1)
+    
     dp = Dispatcher(storage=MemoryStorage())
     
     # Ініціалізація Supabase
@@ -75,7 +95,7 @@ async def main():
     
     # Запуск бота
     try:
-        logger.info("🤖 Бот запущено!")
+        logger.info("🤖 Бот запущено! Чекаю повідомлення...")
         await dp.start_polling(bot)
     except Exception as e:
         logger.error(f"❌ Помилка запуску бота: {e}")
