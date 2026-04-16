@@ -1,9 +1,11 @@
 import os
 from dataclasses import dataclass
-from typing import Optional
+from typing import Optional, List
 from dotenv import load_dotenv
 
-load_dotenv()
+# Завантажуємо .env файл тільки для локальної розробки
+if os.path.exists('.env'):
+    load_dotenv()
 
 @dataclass
 class Config:
@@ -16,8 +18,8 @@ class Config:
     BATCH_SIZE: int = 6
     
     # Мови для фільтрації
-    LANGUAGES: list = None
-    CLASSES: list = None
+    LANGUAGES: List[str] = None
+    CLASSES: List[str] = None
     
     def __post_init__(self):
         if self.LANGUAGES is None:
