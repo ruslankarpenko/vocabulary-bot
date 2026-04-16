@@ -3,7 +3,6 @@ import logging
 import os
 from aiogram import Bot, Dispatcher
 from aiogram.enums import ParseMode
-from aiogram.client.default import DefaultBotProperties
 from aiogram.fsm.storage.memory import MemoryStorage
 from flask import Flask
 from threading import Thread
@@ -37,10 +36,10 @@ async def main():
     """Головна функція запуску бота"""
     logger.info("🚀 Запуск бота...")
     
-    # Ініціалізація бота
+    # Ініціалізація бота (без DefaultBotProperties)
     bot = Bot(
         token=config.BOT_TOKEN,
-        default=DefaultBotProperties(parse_mode=ParseMode.HTML)
+        parse_mode=ParseMode.HTML
     )
     dp = Dispatcher(storage=MemoryStorage())
     
