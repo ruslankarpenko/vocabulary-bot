@@ -15,30 +15,30 @@ class SupabaseClient:
         """Ініціалізація клієнта Supabase"""
         try:
             if not config.SUPABASE_URL or not config.SUPABASE_KEY:
-                logger.warning("⚠️ SUPABASE_URL або SUPABASE_KEY не встановлено!")
+                logger.error("❌ SUPABASE_URL або SUPABASE_KEY не встановлено!")
                 return False
                 
             logger.info(f"🔗 Підключення до Supabase: {config.SUPABASE_URL}")
             
-            # Імпортуємо бібліотеку
+            # Видаляємо можливі проблемні змінні оточення
+            import os
+            for key in ['HTTP_PROXY', 'HTTPS_PROXY', 'http_proxy', 'https_proxy']:
+                os.environ.pop(key, None)
+            
+            # Імпортуємо та створюємо клієнт
             from supabase import create_client
             
-            # Пробуємо різні способи
+            self.client = create_client(
+                config.SUPABASE_URL,
+                config.SUPABASE_KEY
+            )
+            
+            # Перевіряємо з'єднання простим запитом
             try:
-                self.client = create_client(config.SUPABASE_URL, config.SUPABASE_KEY)
-            except TypeError:
-                # Для нових версій
-                self.client = create_client(
-                    supabase_url=config.SUPABASE_URL,
-                    supabase_key=config.SUPABASE_KEY
-                )
+                test = self.client.table("modules").select("id").limit(1).execute()
+                logger.info("✅ З'єднання з Supabase перевірено")
             except Exception as e:
-                # Для старих версій
-                import supabase as sb
-                self.client = sb.Client(
-                    api_url=config.SUPABASE_URL,
-                    api_key=config.SUPABASE_KEY
-                )
+                logger.warning(f"⚠️ Не вдалося виконати тестовий запит: {e}")
             
             self._initialized = True
             logger.info("✅ Supabase клієнт ініціалізовано")
