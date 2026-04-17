@@ -263,9 +263,10 @@ async def confirm_broadcast(callback: CallbackQuery, state: FSMContext):
 async def edit_broadcast(callback: CallbackQuery, state: FSMContext):
     """Редагування розсилки"""
     await state.set_state(BroadcastStates.waiting_message)
-    await callback.message.edit_text(
-        "✏️ Введіть новий текст повідомлення:"
-    )
+    
+    # Видаляємо старе повідомлення і відправляємо нове
+    await callback.message.delete()
+    await callback.message.answer("✏️ Введіть новий текст повідомлення:")
     await callback.answer()
 
 @router.callback_query(F.data == "cancel_broadcast")
