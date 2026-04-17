@@ -15,19 +15,30 @@ class SupabaseClient:
         """Ініціалізація клієнта Supabase"""
         try:
             if not config.SUPABASE_URL or not config.SUPABASE_KEY:
-                logger.error("❌ SUPABASE_URL або SUPABASE_KEY не встановлено!")
+                logger.warning("⚠️ SUPABASE_URL або SUPABASE_KEY не встановлено!")
                 return False
                 
             logger.info(f"🔗 Підключення до Supabase: {config.SUPABASE_URL}")
             
-            # Динамічний імпорт
+            # Імпортуємо бібліотеку
             from supabase import create_client
             
-            # Створюємо клієнт
-            self.client = create_client(
-                supabase_url=config.SUPABASE_URL,
-                supabase_key=config.SUPABASE_KEY
-            )
+            # Пробуємо різні способи
+            try:
+                self.client = create_client(config.SUPABASE_URL, config.SUPABASE_KEY)
+            except TypeError:
+                # Для нових версій
+                self.client = create_client(
+                    supabase_url=config.SUPABASE_URL,
+                    supabase_key=config.SUPABASE_KEY
+                )
+            except Exception as e:
+                # Для старих версій
+                import supabase as sb
+                self.client = sb.Client(
+                    api_url=config.SUPABASE_URL,
+                    api_key=config.SUPABASE_KEY
+                )
             
             self._initialized = True
             logger.info("✅ Supabase клієнт ініціалізовано")
