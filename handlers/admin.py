@@ -178,7 +178,11 @@ async def confirm_broadcast(callback: CallbackQuery, state: FSMContext):
     data = await state.get_data()
     admin_id = callback.from_user.id
     
-    await callback.message.edit_text("📤 <b>Починаю розсилку...</b>\nБудь ласка, зачекайте.")
+    # Видаляємо попереднє повідомлення
+    await callback.message.delete()
+    
+    # Відправляємо нове повідомлення про початок розсилки
+    status_msg = await callback.message.answer("📤 <b>Починаю розсилку...</b>\nБудь ласка, зачекайте.")
     
     # Отримуємо всіх користувачів
     users = await BroadcastModel.get_all_users()
@@ -233,12 +237,18 @@ async def confirm_broadcast(callback: CallbackQuery, state: FSMContext):
     
     # Оновлюємо статистику
     if broadcast:
-        db.get_client(use_service=True).table("broadcasts")\
-            .update({"recipients_count": success_count})\
-            .eq("id", broadcast["id"])\
-            .execute()
+        try:
+            client = db.get_client(use_service=True)
+            if client:
+                client.table("broadcasts")\
+                    .update({"recipients_count": success_count})\
+                    .eq("id", broadcast["id"])\
+                    .execute()
+        except Exception as e:
+            logger.error(f"Помилка оновлення статистики: {e}")
     
-    await callback.message.edit_text(
+    # Редагуємо статусне повідомлення
+    await status_msg.edit_text(
         f"✅ <b>Розсилку завершено!</b>\n\n"
         f"📊 <b>Статистика:</b>\n"
         f"✅ Успішно: {success_count}\n"
@@ -247,7 +257,7 @@ async def confirm_broadcast(callback: CallbackQuery, state: FSMContext):
     )
     
     await state.clear()
-    await callback.answer()
+    await callback.answer("Розсилку завершено!")
 
 @router.callback_query(F.data == "edit_broadcast")
 async def edit_broadcast(callback: CallbackQuery, state: FSMContext):
