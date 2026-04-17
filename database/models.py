@@ -391,3 +391,57 @@ class UserLibraryModel:
         except Exception as e:
             logger.error(f"Помилка отримання бібліотеки: {e}")
             return []
+
+class BroadcastModel:
+    """Модель для роботи з розсилками"""
+    
+    @staticmethod
+    async def create_broadcast(admin_id: int, message_text: str, 
+                               image_url: str = None, button_text: str = None,
+                               button_url: str = None) -> Optional[Dict]:
+        """Створити запис про розсилку"""
+        try:
+            client = db.get_client()
+            if not client:
+                return None
+                
+            data = {
+                "admin_id": admin_id,
+                "message_text": message_text,
+                "image_url": image_url,
+                "button_text": button_text,
+                "button_url": button_url
+            }
+            
+            result = client.table("broadcasts").insert(data).execute()
+            return result.data[0] if result.data else None
+            
+        except Exception as e:
+            logger.error(f"Помилка створення розсилки: {e}")
+            return None
+    
+    @staticmethod
+    async def get_all_users() -> List[int]:
+        """Отримати всіх унікальних користувачів"""
+        try:
+            client = db.get_client(use_service=True)
+            if not client:
+                return []
+                
+            users = set()
+            
+            # З modules
+            result = client.table("modules").select("user_id").execute()
+            if result.data:
+                users.update(item["user_id"] for item in result.data)
+            
+            # З user_progress
+            result = client.table("user_progress").select("user_id").execute()
+            if result.data:
+                users.update(item["user_id"] for item in result.data)
+            
+            return list(users)
+            
+        except Exception as e:
+            logger.error(f"Помилка отримання користувачів: {e}")
+            return []
