@@ -161,6 +161,7 @@ async def show_broadcast_preview(message: Message, data: dict):
     
     # Відправляємо прев'ю
     if data.get('image_url'):
+        # Для фото використовуємо caption
         await message.answer_photo(
             photo=data['image_url'],
             caption=preview_text,
