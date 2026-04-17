@@ -274,7 +274,8 @@ async def edit_broadcast(callback: CallbackQuery, state: FSMContext):
 async def cancel_broadcast(callback: CallbackQuery, state: FSMContext):
     """Скасування розсилки"""
     await state.clear()
-    await callback.message.edit_text("❌ Розсилку скасовано")
+    await callback.message.delete()
+    await callback.message.answer("❌ Розсилку скасовано")
     await callback.message.answer("Головне меню:", reply_markup=get_admin_menu())
     await callback.answer()
 
