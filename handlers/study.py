@@ -1,3 +1,4 @@
+import asyncio
 from aiogram import Router, F
 from aiogram.types import Message, CallbackQuery
 from keyboards.main import get_main_menu, get_admin_menu
@@ -320,6 +321,8 @@ async def start_writing_test(message: Message, user_id: int):
         state["current_word"] = word_data
         state["correct_answer"] = word_data["translation"]
         state["step"] = "writing_test"
+
+        await asyncio.sleep(0.5)
         
         await message.answer(
             f"📝 <b>{word_data['word']}</b>\n\nНапишіть переклад:",
@@ -416,6 +419,9 @@ async def handle_writing_test_answer(message: Message):
             )
     
     state["written_cards"] += 1
+
+    await asyncio.sleep(0.5)
+    
     await start_writing_test(message, user_id)
 
 async def show_next_word(message: Message, user_id: int):
@@ -424,6 +430,8 @@ async def show_next_word(message: Message, user_id: int):
     words_to_study = state["words_to_study"]
     current_index = state["current_index"]
     mode = state["mode"]
+
+    await asyncio.sleep(0.3)
     
     if current_index >= len(words_to_study):
         # Завершення вивчення
